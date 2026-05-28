@@ -6,52 +6,26 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"github.com/google/uuid"
+	"api-gateway/internal/config"
+	"api-gateway/internal/middleware"
 )
 
-type Middleware func(http.Handler) http.Handler
-
-var middlewareRegistry = map[string]Middleware{
-	"RequestID" : RequestIDMiddleware,
-}
-
-type Config struct {
-	ListenAddr string
-	Routes map[string]*Route
-}
-
-type Route struct {
-	Middlewares []string
-	Backends []*Backend
-}
-
-type Backend struct {
-	URL string
-}
-
-func RequestIDMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Header.Get("X-Request-ID") == "" {
-			requestID := uuid.NewString()
-			fmt.Printf("Generated Request ID: %s\n", requestID)
-			r.Header.Set("X-Request-ID", requestID)
-		}
-		next.ServeHTTP(w, r)
-	})
+var middlewareRegistry = map[string]middleware.Middleware{
+	"RequestID" : middleware.RequestIDMiddleware,
 }
 
 func main() {
 	mux := http.NewServeMux()
 	
-	backend1 := &Backend{URL: "http://localhost:8081"}
+	backend1 := &config.Backend{URL: "http://localhost:8081"}
 	
-	route1 := &Route{
+	route1 := &config.Route{
 		Middlewares: []string{"RequestID"},
-		Backends: []*Backend{backend1},
+		Backends: []*config.Backend{backend1},
 	}
-	cfg := &Config{
+	cfg := &config.Config{
 		ListenAddr: ":8080",
-		Routes: map[string]*Route{
+		Routes: map[string]*config.Route{
 			"/users": route1,
 		},
 	}
