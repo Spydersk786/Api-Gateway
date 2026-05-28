@@ -11,7 +11,8 @@ func main() {
 	
 	mux.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("Backend is ALive"))
+		w.Write([]byte("Backend is Alive"))
+		fmt.Printf("RequestID %v", r.Header.Get("X-Request-ID"))
 	})
 
 	port := ":8081"
