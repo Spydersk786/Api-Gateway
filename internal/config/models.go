@@ -4,6 +4,7 @@ import (
 	"net/http/httputil"
 	"sync"
 )
+
 type Config struct {
 	ListenAddr string
 	Routes map[string]*Route

@@ -12,20 +12,21 @@ import (
 	"api-gateway/internal/loadbalancer"
 )
 
-var middlewareRegistry = map[string]middleware.Middleware{
-	"RequestID" : middleware.RequestIDMiddleware,
-}
-
 func main() {
 	mux := http.NewServeMux()
 	
+	var middlewareRegistry = map[string]middleware.Middleware{
+		"RequestID" : middleware.RequestIDMiddleware,
+		"RateLimit" : middleware.NewRateLimiter().Middleware, // Get called exactly once to create the rate limiter instance
+	}
+
 	backend1 := &config.Backend{URL: "http://localhost:8081"}
 	
 	route1 := &config.Route{
-		Middlewares: []string{"RequestID"},
+		Middlewares: []string{"RequestID", "RateLimit"},
 		Backends: []*config.Backend{backend1},
 	}
-
+	
 	cfg := &config.Config{
 		ListenAddr: ":8080",
 		Routes: map[string]*config.Route{
