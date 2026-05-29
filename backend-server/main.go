@@ -15,6 +15,11 @@ func main() {
 		fmt.Printf("RequestID %v", r.Header.Get("X-Request-ID"))
 	})
 
+	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Backend is Alive"))
+	})
+
 	port := ":8081"
 	fmt.Printf("Starting Backend on port %s\n", port)
 

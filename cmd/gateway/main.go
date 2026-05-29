@@ -8,6 +8,8 @@ import (
 	"net/url"
 	"api-gateway/internal/config"
 	"api-gateway/internal/middleware"
+	"api-gateway/internal/health"
+	"api-gateway/internal/loadbalancer"
 )
 
 var middlewareRegistry = map[string]middleware.Middleware{
@@ -23,16 +25,29 @@ func main() {
 		Middlewares: []string{"RequestID"},
 		Backends: []*config.Backend{backend1},
 	}
+
 	cfg := &config.Config{
 		ListenAddr: ":8080",
 		Routes: map[string]*config.Route{
 			"/users": route1,
 		},
 	}
-	
+
+	for _, route := range cfg.Routes {
+		for _, backend := range route.Backends {
+			targetURL, err := url.Parse(backend.URL)
+			if err != nil {
+				log.Fatalf("Invalid backend URL %s: %v", backend.URL, err)
+			}
+
+			backend.Proxy = httputil.NewSingleHostReverseProxy(targetURL)
+			backend.SetAlive(true)
+		}
+	}
+
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("Gateway is ALive"))
+		w.Write([]byte("Gateway is Alive"))
 	})
 
 	for path, route := range cfg.Routes {
@@ -40,16 +55,10 @@ func main() {
 			log.Fatalf("No backends configured for route %s", path)
 		}
 
-		targetStr := route.Backends[0].URL
+		lb := loadbalancer.NewRoundRobin(route.Backends)
 
-		targetURL, err := url.Parse(targetStr)
-		if err != nil {
-			log.Fatalf("Invalid backend URL %s for route %s: %v", targetStr, path, err)
-		}
+		var handler http.Handler = lb
 
-		proxy := httputil.NewSingleHostReverseProxy(targetURL)
-
-		var handler http.Handler = proxy
 		for _, middlewareName := range route.Middlewares {
 			if middleware, exists := middlewareRegistry[middlewareName]; exists {
 				handler = middleware(handler)
@@ -57,11 +66,11 @@ func main() {
 		}
 
 		mux.Handle(path, handler)
-
-		log.Printf("Route %s configured to proxy to %s", path, targetStr)
 	}
 
-	port := ":8080"
+	go health.StartHealthCheck(route1.Backends)
+
+	port := cfg.ListenAddr
 	fmt.Printf("Starting API Gateway on port %s\n", port)
 
 	if err := http.ListenAndServe(port, mux); err != nil {

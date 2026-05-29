@@ -2,6 +2,7 @@ package config
 
 import (
 	"net/http/httputil"
+	"sync"
 )
 type Config struct {
 	ListenAddr string
@@ -16,4 +17,18 @@ type Route struct {
 type Backend struct {
 	URL string
 	Proxy *httputil.ReverseProxy
+	active bool
+	mu sync.RWMutex
+}
+
+func (b *Backend) SetAlive(active bool) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	b.active = active
+}
+
+func (b *Backend) IsAlive() bool {
+	b.mu.RLock()
+	defer b.mu.RUnlock()
+	return b.active
 }
