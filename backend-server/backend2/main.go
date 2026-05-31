@@ -11,7 +11,7 @@ func main() {
 	mux := http.NewServeMux()
 	
 	mux.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
-		if rand.Intn(10) < 7 { // Simulate a 30% chance of failure
+		if rand.Intn(10) < 2 { // Simulate a 20% chance of failure
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("Backend is Down"))
 			fmt.Printf("RequestID %v", r.Header.Get("X-Request-ID"))
