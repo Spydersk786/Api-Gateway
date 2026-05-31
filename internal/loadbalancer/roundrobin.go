@@ -1,7 +1,7 @@
 package loadbalancer
 
 import (
-	// "fmt"
+	"fmt"
 	"net/http"
 	"math"
 	"math/rand"
@@ -48,7 +48,7 @@ func (rr *RoundRobin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			backend.Proxy.ServeHTTP(recorder, r)
 
 			if recorder.statusCode < 500 {
-				// fmt.Printf("RequestID %v served by backend in %v tries\n", r.Header.Get("X-Request-ID"), attempts+1)
+				fmt.Printf("RequestID %v served by backend in %v tries\n on backend %v", r.Header.Get("X-Request-ID"), attempts+1, backend.URL)
 				for key, values := range recorder.Header() {
 					w.Header()[key] = values
 				}

@@ -21,10 +21,12 @@ func main() {
 	}
 
 	backend1 := &config.Backend{URL: "http://localhost:8081"}
-	
+	backend2 := &config.Backend{URL: "http://localhost:8082"}
+	backend3 := &config.Backend{URL: "http://localhost:8083"}
+
 	route1 := &config.Route{
 		Middlewares: []string{"RequestID", "RateLimit"},
-		Backends: []*config.Backend{backend1},
+		Backends: []*config.Backend{backend1,backend2,backend3},
 	}
 	
 	cfg := &config.Config{
