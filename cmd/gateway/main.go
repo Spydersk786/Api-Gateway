@@ -18,6 +18,7 @@ func main() {
 	var middlewareRegistry = map[string]middleware.Middleware{
 		"RequestID" : middleware.RequestIDMiddleware,
 		"RateLimit" : middleware.NewRateLimiter().Middleware, // Get called exactly once to create the rate limiter instance
+		"Auth" : middleware.AuthMiddleware,
 	}
 
 	backend1 := &config.Backend{URL: "http://localhost:8081"}
@@ -25,7 +26,7 @@ func main() {
 	backend3 := &config.Backend{URL: "http://localhost:8083"}
 
 	route1 := &config.Route{
-		Middlewares: []string{"RequestID", "RateLimit"},
+		Middlewares: []string{"RequestID", "RateLimit", "Auth"},
 		Backends: []*config.Backend{backend1,backend2,backend3},
 	}
 	
