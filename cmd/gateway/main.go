@@ -1,11 +1,15 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"os"
+	"os/signal"
+	"context"
+	"syscall"
+	"time"
 	"api-gateway/internal/config"
 	"api-gateway/internal/middleware"
 	"api-gateway/internal/health"
@@ -76,11 +80,34 @@ func main() {
 
 	go health.StartHealthCheck(route1.Backends)
 
-	port := cfg.ListenAddr
-	fmt.Printf("Starting API Gateway on port %s\n", port)
-
-	if err := http.ListenAndServe(port, mux); err != nil {
-		log.Fatalf("Failed to start API Gateway: %v", err)
+	srv := &http.Server{
+		Addr:    cfg.ListenAddr,
+		Handler: mux,
 	}
 
+	go func() {
+		log.Printf("Starting API Gateway on port %s\n", cfg.ListenAddr)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Failed to start API Gateway: %v", err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+
+	// Listen for interrupt signals to gracefully shutdown the server
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	// Block until we receive a signal
+	<-quit
+	log.Println("Shutting down API Gateway...")
+
+	// Create a context with timeout to allow for graceful shutdown
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalf("Failed to gracefully shutdown API Gateway: %v", err)
+	}
+
+	log.Println("API Gateway stopped. All connections closed.")
 }
