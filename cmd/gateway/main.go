@@ -16,6 +16,7 @@ func main() {
 	mux := http.NewServeMux()
 	
 	var middlewareRegistry = map[string]middleware.Middleware{
+		"Recover" : middleware.RecoverMiddleware,
 		"Logging" : middleware.LoggingMiddleware,
 		"RequestID" : middleware.RequestIDMiddleware,
 		"RateLimit" : middleware.NewRateLimiter().Middleware, // Get called exactly once to create the rate limiter instance
@@ -27,7 +28,7 @@ func main() {
 	backend3 := &config.Backend{URL: "http://localhost:8083"}
 
 	route1 := &config.Route{
-		Middlewares: []string{"Logging", "RequestID", "RateLimit", "Auth"},
+		Middlewares: []string{"Recover", "Logging", "RequestID", "RateLimit", "Auth"},
 		Backends: []*config.Backend{backend1,backend2,backend3},
 	}
 	
