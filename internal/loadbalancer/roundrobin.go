@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"time"
 	"sync/atomic"
+	"context"
 	"api-gateway/internal/config"
 )
 
@@ -44,8 +45,14 @@ func (rr *RoundRobin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				ResponseWriter: w,
 				statusCode:     http.StatusOK, // Default to 200 OK
 			}
+			
+			ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+
+			reqWithTimeout := r.WithContext(ctx) // Ensure we have a context to work with
 	
-			backend.Proxy.ServeHTTP(recorder, r)
+			backend.Proxy.ServeHTTP(recorder, reqWithTimeout)
+
+			cancel() // Cancel the context to free resources
 
 			if recorder.statusCode < 500 {
 				fmt.Printf("RequestID %v served by backend in %v tries\n on backend %v", r.Header.Get("X-Request-ID"), attempts+1, backend.URL)
