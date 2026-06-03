@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	// "time"
 	"net/http"
 	"math/rand"
 )
@@ -11,6 +12,8 @@ func main() {
 	mux := http.NewServeMux()
 	
 	mux.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
+		// simulate request taking more than 2 second to trigger context timeout
+		// time.Sleep(10 * time.Second)
 		if rand.Intn(10) < 2 { // Simulate a 20% chance of failure
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("Backend is Down"))
