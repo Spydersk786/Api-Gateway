@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"fmt"
 	"log"
 	// "time"
@@ -18,6 +19,17 @@ func main() {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("Backend is Down"))
 			fmt.Printf("RequestID %v failed", r.Header.Get("X-Request-ID"))
+			return
+		}
+
+		if r.Method == http.MethodPost{
+			body, _ := io.ReadAll(r.Body)
+			defer r.Body.Close()
+
+			fmt.Printf("Received POST request with body: %s\n", string(body))
+
+			w.WriteHeader(http.StatusCreated)
+			w.Write([]byte("Gateway successfully forwarded POST request to Backend"))
 			return
 		}
 		w.WriteHeader(http.StatusOK)
