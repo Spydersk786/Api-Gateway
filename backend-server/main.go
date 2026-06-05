@@ -15,10 +15,11 @@ func main() {
 	mux.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
 		// simulate request taking more than 2 second to trigger context timeout
 		// time.Sleep(10 * time.Second)
+		log.Printf("Received request for %s on port %s\n", r.URL.Path, r.Host)
 		if rand.Intn(10) < 2 { // Simulate a 20% chance of failure
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("Backend is Down"))
-			fmt.Printf("RequestID %v failed", r.Header.Get("X-Request-ID"))
+			log.Printf("RequestID %v failed", r.Header.Get("X-Request-ID"))
 			return
 		}
 
@@ -42,11 +43,16 @@ func main() {
 		w.Write([]byte("Backend is Alive"))
 	})
 
-	port := ":8082"
-	fmt.Printf("Starting Backend on port %s\n", port)
-
-	if err := http.ListenAndServe(port, mux); err != nil {
-		log.Fatalf("Failed to start Backend: %v", err)
+	ports := []string{":8081", ":8082", ":8083"}
+	for _, port := range ports {
+		fmt.Printf("Starting Backend on port %s\n", port)
+		go func(p string) {
+			if err := http.ListenAndServe(p, mux); err != nil {
+				log.Fatalf("Failed to start Backend on port %s: %v", p, err)
+			}
+		}(port)
 	}
 
+	// Block forever
+	select {}
 }

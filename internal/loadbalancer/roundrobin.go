@@ -1,7 +1,7 @@
 package loadbalancer
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 	"math"
 	"math/rand"
@@ -55,7 +55,7 @@ func (rr *RoundRobin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			cancel() // Cancel the context to free resources
 
 			if recorder.statusCode < 500 {
-				fmt.Printf("RequestID %v served by backend in %v tries\n on backend %v", r.Header.Get("X-Request-ID"), attempts+1, backend.URL)
+				log.Printf("RequestID %v served by backend in %v tries\n on backend %v", r.Header.Get("X-Request-ID"), attempts+1, backend.URL)
 				for key, values := range recorder.Header() {
 					w.Header()[key] = values
 				}
