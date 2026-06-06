@@ -15,7 +15,6 @@ func main() {
 	mux.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
 		// simulate request taking more than 2 second to trigger context timeout
 		// time.Sleep(10 * time.Second)
-		log.Printf("Received request for %s on port %s\n", r.URL.Path, r.Host)
 		if rand.Intn(10) < 2 { // Simulate a 20% chance of failure
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("Backend is Down"))
@@ -34,7 +33,32 @@ func main() {
 			return
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("Backend is Alive"))
+		w.Write([]byte("/users GET request successful"))
+		fmt.Printf("RequestID %v succeeded", r.Header.Get("X-Request-ID"))
+	})
+
+	mux.HandleFunc("/billings", func(w http.ResponseWriter, r *http.Request) {
+		// simulate request taking more than 2 second to trigger context timeout
+		// time.Sleep(10 * time.Second)
+		if rand.Intn(10) < 2 { // Simulate a 20% chance of failure
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("Backend is Down"))
+			log.Printf("RequestID %v failed", r.Header.Get("X-Request-ID"))
+			return
+		}
+
+		if r.Method == http.MethodPost{
+			body, _ := io.ReadAll(r.Body)
+			defer r.Body.Close()
+
+			fmt.Printf("Received /billing POST request with body: %s\n", string(body))
+
+			w.WriteHeader(http.StatusCreated)
+			w.Write([]byte("Gateway successfully forwarded POST request to Backend"))
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("/billing GET request successful"))
 		fmt.Printf("RequestID %v succeeded", r.Header.Get("X-Request-ID"))
 	})
 
@@ -43,7 +67,7 @@ func main() {
 		w.Write([]byte("Backend is Alive"))
 	})
 
-	ports := []string{":8081", ":8082", ":8083"}
+	ports := []string{":8081", ":8082", ":8083", ":8084", ":8085"}
 	for _, port := range ports {
 		fmt.Printf("Starting Backend on port %s\n", port)
 		go func(p string) {
