@@ -3,6 +3,7 @@ package loadbalancer
 import (
 	"log"
 	"net/http"
+	"bytes"
 	"math"
 	"math/rand"
 	"time"
@@ -12,9 +13,35 @@ import (
 )
 
 type responseRecorder struct {
-	http.ResponseWriter
 	statusCode int
-	body       []byte
+	body       *bytes.Buffer
+	headers   http.Header
+}
+
+func newResponseRecorder() *responseRecorder {
+	return &responseRecorder{
+		statusCode: 0,
+		body:       &bytes.Buffer{}, 
+		headers:    make(http.Header),
+	}
+}
+
+func (r *responseRecorder) Header() http.Header {
+	return r.headers
+}
+
+func (r *responseRecorder) WriteHeader(statusCode int) {
+	if r.statusCode == 0 {
+		r.statusCode = statusCode
+	}
+}
+
+func (r *responseRecorder) Write(b []byte) (int, error) {
+	if r.statusCode == 0 {
+		r.statusCode = http.StatusOK
+	}
+
+	return r.body.Write(b)
 }
 
 type RoundRobin struct {
@@ -41,27 +68,24 @@ func (rr *RoundRobin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		for attempts := 0; attempts < maxRetries; attempts++ {
-			recorder := &responseRecorder{
-				ResponseWriter: w,
-				statusCode:     http.StatusOK, // Default to 200 OK
-			}
+			recorder := newResponseRecorder()
 			
 			ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
 
-			reqWithTimeout := r.WithContext(ctx) // Ensure we have a context to work with
+			reqWithTimeout := r.Clone(ctx) // Create a copy of the request with the new context
 	
 			backend.Proxy.ServeHTTP(recorder, reqWithTimeout)
 
 			cancel() // Cancel the context to free resources
 
-			if recorder.statusCode < 500 {
+			if recorder.statusCode >= 200 && recorder.statusCode < 500 {
 				log.Printf("RequestID %v served by backend in %v tries\n on backend %v", r.Header.Get("X-Request-ID"), attempts+1, backend.URL)
 				for key, values := range recorder.Header() {
 					w.Header()[key] = values
 				}
 
 				w.WriteHeader(recorder.statusCode)
-				w.Write(recorder.body)
+				w.Write(recorder.body.Bytes())
 				return
 			}
 
@@ -75,13 +99,4 @@ func (rr *RoundRobin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		backend.SetAlive(false)
 	}
 	http.Error(w, "502 Bad Gateway: All backend servers are down", http.StatusBadGateway)
-}
-
-func (r *responseRecorder) WriteHeader(statusCode int) {
-	r.statusCode = statusCode
-}
-
-func (r *responseRecorder) Write(b []byte) (int, error) {
-	r.body = append(r.body, b...)
-	return len(b), nil
 }
