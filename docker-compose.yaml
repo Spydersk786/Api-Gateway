@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mock-backends
+
+  mock-backends:
+    build:
+      context: .
+      dockerfile: backend-server/Dockerfile
+    container_name: mock-backends
+    ports:
+      - "8081:8081"
+      - "8082:8082"
+      - "8083:8083"
+      - "8084:8084"
+      - "8085:8085"

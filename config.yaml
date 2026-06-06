@@ -8,9 +8,9 @@ routes:
       - "RateLimit"
       - "Auth"
     backends:
-      - "http://localhost:8081"
-      - "http://localhost:8082"
-      - "http://localhost:8083"
+      - "http://mock-backends:8081"
+      - "http://mock-backends:8082"
+      - "http://mock-backends:8083"
   "/billings":
     middlewares:
       - "Recover"
@@ -19,5 +19,5 @@ routes:
       - "RateLimit"
       - "Auth"
     backends:
-      - "http://localhost:8084"
-      - "http://localhost:8085"
+      - "http://mock-backends:8084"
+      - "http://mock-backends:8085"
