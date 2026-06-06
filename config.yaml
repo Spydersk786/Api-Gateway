@@ -1,0 +1,23 @@
+listen_addr: ":8080"
+routes:
+  "/users":
+    middlewares:
+      - "Recover"
+      - "Logging"
+      - "RequestID"
+      - "RateLimit"
+      - "Auth"
+    backends:
+      - "http://localhost:8081"
+      - "http://localhost:8082"
+      - "http://localhost:8083"
+  "/billings":
+    middlewares:
+      - "Recover"
+      - "Logging"
+      - "RequestID"
+      - "RateLimit"
+      - "Auth"
+    backends:
+      - "http://localhost:8084"
+      - "http://localhost:8085"

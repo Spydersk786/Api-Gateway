@@ -10,13 +10,43 @@ import (
 	"context"
 	"syscall"
 	"time"
+	"gopkg.in/yaml.v3"
 	"api-gateway/internal/config"
 	"api-gateway/internal/middleware"
 	"api-gateway/internal/health"
 	"api-gateway/internal/loadbalancer"
 )
 
+type Config struct {
+	ListenAddr string `yaml:"listen_addr"`
+	Routes map[string]Route `yaml:"routes"`
+}
+
+type Route struct {
+	Middlewares []string `yaml:"middlewares"`
+	Backends []string `yaml:"backends"`
+}
+
+func loadConfig(filename string) (*Config, error) {
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	var cfg Config
+	if err := yaml.Unmarshal(data, &cfg); err != nil {
+		return nil, err
+	}
+
+	return &cfg, nil
+}
+
 func main() {
+	yamlConfig, err := loadConfig("config.yaml")
+	if err != nil {
+		log.Fatalf("Failed to load configuration: %v", err)
+	}
+
 	mux := http.NewServeMux()
 	
 	var middlewareRegistry = map[string]middleware.Middleware{
@@ -27,32 +57,44 @@ func main() {
 		"Auth" : middleware.AuthMiddleware,
 	}
 
-	backend1 := &config.Backend{URL: "http://localhost:8081"}
-	backend2 := &config.Backend{URL: "http://localhost:8082"}
-	backend3 := &config.Backend{URL: "http://localhost:8083"}
+	allBackends := make(map[string]*config.Backend)
 
-	route1 := &config.Route{
-		Middlewares: []string{"Recover", "Logging", "RequestID", "RateLimit", "Auth"},
-		Backends: []*config.Backend{backend1,backend2,backend3},
+	for _, route := range yamlConfig.Routes {
+		for _, backendURL := range route.Backends {
+			if _, exists := allBackends[backendURL]; !exists {
+				targetURL, err := url.Parse(backendURL)
+				if err != nil {
+					log.Fatalf("Invalid backend URL %s: %v", backendURL, err)
+				}
+				allBackends[backendURL] = &config.Backend{
+					URL: backendURL,
+					Proxy: httputil.NewSingleHostReverseProxy(targetURL),
+				}
+				allBackends[backendURL].SetAlive(true)
+			}
+		}
+	}
+
+	allRoutes := make(map[string]*config.Route)
+
+	for path, routeConfig := range yamlConfig.Routes {
+		route := &config.Route{
+			Middlewares: routeConfig.Middlewares,
+			Backends: []*config.Backend{},
+		}
+		for _, backendURL := range routeConfig.Backends {
+			if backend, exists := allBackends[backendURL]; exists {
+				route.Backends = append(route.Backends, backend)
+			} else {
+				log.Fatalf("Backend URL %s for route %s not found in backends map", backendURL, path)
+			}
+		}
+		allRoutes[path] = route
 	}
 	
 	cfg := &config.Config{
-		ListenAddr: ":8080",
-		Routes: map[string]*config.Route{
-			"/users": route1,
-		},
-	}
-
-	for _, route := range cfg.Routes {
-		for _, backend := range route.Backends {
-			targetURL, err := url.Parse(backend.URL)
-			if err != nil {
-				log.Fatalf("Invalid backend URL %s: %v", backend.URL, err)
-			}
-
-			backend.Proxy = httputil.NewSingleHostReverseProxy(targetURL)
-			backend.SetAlive(true)
-		}
+		ListenAddr: yamlConfig.ListenAddr,
+		Routes: allRoutes,
 	}
 
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
@@ -78,7 +120,9 @@ func main() {
 		mux.Handle(path, handler)
 	}
 
-	go health.StartHealthCheck(route1.Backends)
+	for _, route := range cfg.Routes {
+		go health.StartHealthCheck(route.Backends)
+	}
 
 	srv := &http.Server{
 		Addr:    cfg.ListenAddr,
