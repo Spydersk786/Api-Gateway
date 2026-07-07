@@ -8,8 +8,17 @@ services:
     container_name: api-gateway
     ports:
       - "8080:8080"
+    environment:
+      - REDIS_ADDR=redis:6379
     depends_on:
       - mock-backends
+      - redis
+  
+  redis:
+    image: redis:7-alpine
+    container_name: redis-cache
+    ports:
+      - "6379:6379"
 
   mock-backends:
     build:
@@ -22,3 +31,5 @@ services:
       - "8083:8083"
       - "8084:8084"
       - "8085:8085"
+
+# docker-compose up --build --force-recreate

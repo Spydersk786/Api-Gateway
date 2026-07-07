@@ -1,20 +1,21 @@
 package main
 
 import (
+	"api-gateway/internal/config"
+	"api-gateway/internal/health"
+	"api-gateway/internal/loadbalancer"
+	"api-gateway/internal/middleware"
+	"context"
 	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"os"
 	"os/signal"
-	"context"
 	"syscall"
 	"time"
+
 	"gopkg.in/yaml.v3"
-	"api-gateway/internal/config"
-	"api-gateway/internal/middleware"
-	"api-gateway/internal/health"
-	"api-gateway/internal/loadbalancer"
 )
 
 type Config struct {
@@ -47,13 +48,20 @@ func main() {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
+	redisAddr := os.Getenv("REDIS_ADDR")
+	if redisAddr == "" {
+		redisAddr = "localhost:6379" // Default Redis address if not set in environment
+	}
+
+	redisLimiter := middleware.NewRateLimiter(redisAddr, 5, 10) // Example: 5 requests per second with a capacity of 10 tokens
+
 	mux := http.NewServeMux()
 	
 	var middlewareRegistry = map[string]middleware.Middleware{
 		"Recover" : middleware.RecoverMiddleware,
 		"Logging" : middleware.LoggingMiddleware,
 		"RequestID" : middleware.RequestIDMiddleware,
-		"RateLimit" : middleware.NewRateLimiter().Middleware, // Get called exactly once to create the rate limiter instance
+		"RateLimit" : redisLimiter.Middleware, // Get called exactly once to create the rate limiter instance
 		"Auth" : middleware.AuthMiddleware,
 	}
 
