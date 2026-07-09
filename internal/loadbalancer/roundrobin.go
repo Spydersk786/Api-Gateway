@@ -31,12 +31,15 @@ func (r *responseRecorder) Header() http.Header {
 }
 
 func (r *responseRecorder) WriteHeader(statusCode int) {
+	// Only set the status code if it hasn't been set yet
 	if r.statusCode == 0 {
 		r.statusCode = statusCode
 	}
 }
 
 func (r *responseRecorder) Write(b []byte) (int, error) {
+	// When only write is called without WriteHeader, we should set the status code to 200 OK
+	// In case WriteHeader has already been called, we should not override it
 	if r.statusCode == 0 {
 		r.statusCode = http.StatusOK
 	}

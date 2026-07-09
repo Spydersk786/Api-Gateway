@@ -10,6 +10,7 @@ type Middleware func(http.Handler) http.Handler
 
 func RequestIDMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// May be client sends their own id, need to handle that
 		if r.Header.Get("X-Request-ID") == "" {
 			requestID := uuid.NewString()
 			fmt.Printf("Generated Request ID: %s\n", requestID)

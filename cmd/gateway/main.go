@@ -144,6 +144,7 @@ func main() {
 		}
 	}()
 
+	// Create a channel to listen for OS signals with a buffer size of 1
 	quit := make(chan os.Signal, 1)
 
 	// Listen for interrupt signals to gracefully shutdown the server
