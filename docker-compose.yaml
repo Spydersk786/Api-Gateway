@@ -31,5 +31,21 @@ services:
       - "8083:8083"
       - "8084:8084"
       - "8085:8085"
+  
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana-enterprise
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
 
 # docker-compose up --build --force-recreate

@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"gopkg.in/yaml.v3"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type Config struct {
@@ -61,6 +62,7 @@ func main() {
 	var middlewareRegistry = map[string]middleware.Middleware{
 		"Recover" : middleware.RecoverMiddleware,
 		"Logging" : middleware.LoggingMiddleware,
+		"Metrics" : middleware.MetricsMiddleware,
 		"RequestID" : middleware.RequestIDMiddleware,
 		"RateLimit" : redisLimiter.Middleware, // Get called exactly once to create the rate limiter instance
 		"Auth" : jwtValidator.Middleware,
@@ -110,6 +112,8 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Gateway is Alive"))
 	})
+
+	mux.Handle("/metrics", promhttp.Handler())
 
 	for path, route := range cfg.Routes {
 		if len(route.Backends) == 0 {

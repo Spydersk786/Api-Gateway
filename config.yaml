@@ -5,6 +5,7 @@ routes:
       - "Recover"
       - "Logging"
       - "RequestID"
+      - "Metrics"
       - "RateLimit"
       - "Auth"
     backends:
@@ -16,6 +17,7 @@ routes:
       - "Recover"
       - "Logging"
       - "RequestID"
+      - "Metrics"
       - "RateLimit"
       - "Auth"
     backends:

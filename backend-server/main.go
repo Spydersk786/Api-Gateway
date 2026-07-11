@@ -32,6 +32,29 @@ func main() {
 			w.Write([]byte("Gateway successfully forwarded POST request to Backend"))
 			return
 		}
+
+		if r.Method == http.MethodPut{
+			body, _ := io.ReadAll(r.Body)
+			defer r.Body.Close()
+
+			fmt.Printf("Received PUT request with body: %s\n", string(body))
+
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("Gateway successfully forwarded PUT request to Backend"))
+			return
+		}
+
+		if r.Method == http.MethodDelete{
+			body, _ := io.ReadAll(r.Body)
+			defer r.Body.Close()
+
+			fmt.Printf("Received DELETE request with body: %s\n", string(body))
+
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("Gateway successfully forwarded DELETE request to Backend"))
+			return
+		}
+
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("/users GET request successful"))
 		fmt.Printf("RequestID %v succeeded", r.Header.Get("X-Request-ID"))
@@ -57,6 +80,27 @@ func main() {
 			w.Write([]byte("Gateway successfully forwarded POST request to Backend"))
 			return
 		}
+
+		if r.Method == http.MethodPut{
+			body, _ := io.ReadAll(r.Body)
+			defer r.Body.Close()
+
+			fmt.Printf("Received /billing PUT request with body: %s\n", string(body))
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("Gateway successfully forwarded PUT request to Backend"))
+			return
+		}
+
+		if r.Method == http.MethodDelete{
+			body, _ := io.ReadAll(r.Body)
+			defer r.Body.Close()
+
+			fmt.Printf("Received /billing DELETE request with body: %s\n", string(body))
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("Gateway successfully forwarded DELETE request to Backend"))
+			return
+		}	
+
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("/billing GET request successful"))
 		fmt.Printf("RequestID %v succeeded", r.Header.Get("X-Request-ID"))
