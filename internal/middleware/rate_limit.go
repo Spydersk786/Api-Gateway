@@ -137,3 +137,10 @@ func extractIP(r *http.Request) string {
 
 	return ip
 }
+
+func (rl *RateLimiter) Close() error {
+	if rl.client != nil {
+		return rl.client.Close()
+	}
+	return nil
+}

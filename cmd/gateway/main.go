@@ -164,4 +164,12 @@ func main() {
 	}
 
 	log.Println("API Gateway stopped. All connections closed.")
+
+	log.Println("Closing Redis connection...")
+	if err := redisLimiter.Close(); err != nil {
+		log.Fatalf("Failed to close Redis connection: %v", err)
+	}
+
+	log.Println("Redis connection closed. Exiting.")
+	log.Println("API Gateway exited gracefully.")
 }
