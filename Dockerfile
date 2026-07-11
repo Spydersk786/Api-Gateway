@@ -17,6 +17,8 @@ FROM alpine:latest
 
 WORKDIR /root/
 
+COPY --from=builder /app/public.pem .
+
 # Copy the built binary from the builder stage
 COPY --from=builder /api-gateway .
 

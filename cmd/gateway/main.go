@@ -55,6 +55,7 @@ func main() {
 
 	redisLimiter := middleware.NewRateLimiter(redisAddr, 5, 10) // Example: 5 requests per second with a capacity of 10 tokens
 
+	jwtValidator := middleware.NewJWTValidator("public.pem") // Load the public key for JWT validation
 	mux := http.NewServeMux()
 	
 	var middlewareRegistry = map[string]middleware.Middleware{
@@ -62,7 +63,7 @@ func main() {
 		"Logging" : middleware.LoggingMiddleware,
 		"RequestID" : middleware.RequestIDMiddleware,
 		"RateLimit" : redisLimiter.Middleware, // Get called exactly once to create the rate limiter instance
-		"Auth" : middleware.AuthMiddleware,
+		"Auth" : jwtValidator.Middleware,
 	}
 
 	allBackends := make(map[string]*config.Backend)
