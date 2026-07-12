@@ -113,7 +113,7 @@ Metrics tracked include:
 - `gateway_http_requests_total` (Counter mapped by Method, Path, and Status Code)
 - `gateway_http_request_duration_seconds` (Histogram mapped by Method, Path)
 
-### Grafana Dashboard
+### 📈 Grafana Dashboard
 
 The gateway exports RED metrics which are visualized through Grafana.
 
