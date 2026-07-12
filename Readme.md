@@ -113,6 +113,19 @@ Metrics tracked include:
 - `gateway_http_requests_total` (Counter mapped by Method, Path, and Status Code)
 - `gateway_http_request_duration_seconds` (Histogram mapped by Method, Path)
 
+### Grafana Dashboard
+
+The gateway exports RED metrics which are visualized through Grafana.
+
+#### Request Throughput
+![Throughput](docs/grafana-screenshot-3.png)
+
+#### Request Latency
+![Latency](docs/grafana-screenshot-2.png)
+
+#### Error Rate
+![Errors](docs/grafana-screenshot-4.png)
+
 ## 🚀 Getting Started
 
 ### 1. Start the Infrastructure (Docker Compose)
