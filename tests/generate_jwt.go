@@ -118,7 +118,9 @@ func main() {
 		wg.Add(1)
 		go func(index int) {
 			defer wg.Done()
-			spec := plans[index%len(plans)]
+			// randomly select a request spec from the plan
+			mathRand := time.Now().UnixNano() + int64(index)
+			spec := plans[mathRand%int64(len(plans))]
 			sendRequest(index, spec, bearerToken)
 		}(i)
 	}
