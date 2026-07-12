@@ -8,6 +8,19 @@
 
 A high-performance, production-ready API Gateway built in Go. This gateway acts as the single point of entry for microservices, handling routing, distributed rate-limiting, asymmetric cryptographic security, and load balancing, all fully instrumented with Prometheus and Grafana.
 
+## 📑 Table of Contents
+
+- ✨ Feature Checklist
+- 🏗️ Architecture
+- 🌊 API Request Flow
+- 🔐 JWT Authentication Flow
+- 📊 Observability
+- 📁 Project Structure
+- 🚀 Getting Started
+- 💻 Testing & Development
+- 🔮 Future Improvements
+- 📜 License
+
 ## ✨ Feature Checklist
 
 - [x] **Custom Reverse Proxy:** Safe context cloning and HTTP stream forwarding.
@@ -126,6 +139,28 @@ The gateway exports RED metrics which are visualized through Grafana.
 #### Error Rate
 ![Errors](docs/grafana-screenshot-4.png)
 
+## 📁 Project Structure
+
+```text
+.
+├── backend-server/         # Mock servers implemetation and its Dockerfile
+├── cmd/                    # Application entrypoints
+├── docs/                   # Dashboard screenshots
+├── internal/             
+│   ├── config/             # Configuration management
+│   ├── health/             # Backend Heath check implementation
+│   ├── loadbalancer/       # Routing, retries, circuit breakers
+│   └── middleware/         # Rate limiting, RS256 JWT validation, logging, tracing, Prometheus instrumentation
+├── tests/                  # JWT generation and Rate limiting test
+├── config.yaml             # Configration of routes, middlewares and backends 
+├── docker-compose.yml      # Local infrastructure stack
+├── Dockerfile              # Gateway's Dockerfile
+├── private.pem             # Dummy private key
+├── prometheus.yaml         # Prometheus configration
+├── public.pem              # Dummy public key 
+└── README.md
+```
+
 ## 🚀 Getting Started
 
 ### 1. Start the Infrastructure (Docker Compose)
@@ -187,4 +222,8 @@ Potential future roadmap items include:
 - Dynamic Configuration: Implement a file watcher (like fsnotify) to hot-reload routes and rate limits without restarting the binary.
 - Distributed Tracing: Integrate OpenTelemetry to inject trace IDs across microservice boundaries (Jaeger/Zipkin).
 - gRPC Support: Expand reverse proxy capabilities to multiplex gRPC traffic alongside HTTP/1.1.
+
+## 📜 License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
