@@ -6,7 +6,7 @@
 ![Prometheus](https://img.shields.io/badge/Prometheus-Observed-E6522C?style=for-the-badge&logo=prometheus)
 ![Grafana](https://img.shields.io/badge/Grafana-Dashboard-orange?style=for-the-badge&logo=grafana)
 
-A high-performance, production-ready API Gateway built in Go. This gateway acts as the single point of entry for microservices, handling routing, distributed rate-limiting, asymmetric cryptographic security, and load balancing, all fully instrumented with Prometheus and Grafana.
+A high-performance, production-inspired API Gateway built in Go. This gateway acts as the single point of entry for microservices, handling routing, distributed rate-limiting, asymmetric cryptographic security, and load balancing, all fully instrumented with Prometheus and Grafana.
 
 ## 📑 Table of Contents
 
