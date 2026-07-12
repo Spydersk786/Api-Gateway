@@ -33,7 +33,7 @@ graph LR
     subgraph Gateway Infrastructure
         GW <--> Redis[(Redis Cluster)]
         GW --> Metrics[Prometheus Exporter]
-        Prometheus Exporter -->|Queried by| Grafana([Grafana Dashboard])
+        Prom -->|Queried by| Grafana([Grafana Dashboard])
     end
 
     GW --> LB{Load Balancer}
